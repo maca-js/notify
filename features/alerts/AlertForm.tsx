@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,24 +19,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { createAlertAction } from "./actions";
+import type { AlertWithAsset } from "@/entities/alert/model";
+import { createAlertAction, updateAlertAction } from "./actions";
 
 type Props = {
   assetId: string;
   assetName: string;
   open: boolean;
   onClose: () => void;
+  alert?: AlertWithAsset;
 };
 
 type AlertType = "percent_change" | "threshold";
 type AlertCondition = "above" | "below";
 
-export function AlertForm({ assetId, assetName, open, onClose }: Props) {
-  const [type, setType] = useState<AlertType>("percent_change");
-  const [condition, setCondition] = useState<AlertCondition>("above");
-  const [value, setValue] = useState("");
-  const [cooldown, setCooldown] = useState("60");
+export function AlertForm({ assetId, assetName, open, onClose, alert }: Props) {
+  const [type, setType] = useState<AlertType>(alert?.type ?? "percent_change");
+  const [condition, setCondition] = useState<AlertCondition>(alert?.condition ?? "above");
+  const [value, setValue] = useState(alert?.value?.toString() ?? "");
+  const [cooldown, setCooldown] = useState(alert?.cooldown_minutes?.toString() ?? "60");
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setType(alert?.type ?? "percent_change");
+    setCondition(alert?.condition ?? "above");
+    setValue(alert?.value?.toString() ?? "");
+    setCooldown(alert?.cooldown_minutes?.toString() ?? "60");
+  }, [alert]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,16 +53,25 @@ export function AlertForm({ assetId, assetName, open, onClose }: Props) {
     if (isNaN(numValue) || numValue <= 0) return;
 
     startTransition(async () => {
-      await createAlertAction({
-        asset_id: assetId,
-        type,
-        condition,
-        value: numValue,
-        timeframe: "24h",
-        is_active: true,
-        cooldown_minutes: parseInt(cooldown, 10),
-        last_triggered_at: null,
-      });
+      if (alert) {
+        await updateAlertAction(alert.id, {
+          type,
+          condition,
+          value: numValue,
+          cooldown_minutes: parseInt(cooldown, 10),
+        });
+      } else {
+        await createAlertAction({
+          asset_id: assetId,
+          type,
+          condition,
+          value: numValue,
+          timeframe: "24h",
+          is_active: true,
+          cooldown_minutes: parseInt(cooldown, 10),
+          last_triggered_at: null,
+        });
+      }
       setValue("");
       onClose();
     });
@@ -63,7 +81,9 @@ export function AlertForm({ assetId, assetName, open, onClose }: Props) {
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>New alert for {assetName}</DialogTitle>
+          <DialogTitle>
+            {alert ? "Edit alert for" : "New alert for"} {assetName}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
@@ -137,7 +157,7 @@ export function AlertForm({ assetId, assetName, open, onClose }: Props) {
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Create alert
+              {alert ? "Save changes" : "Create alert"}
             </Button>
           </DialogFooter>
         </form>

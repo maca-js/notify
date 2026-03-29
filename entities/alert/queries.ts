@@ -37,6 +37,15 @@ export async function createAlert(data: AlertInsert): Promise<Alert> {
   return alert;
 }
 
+export async function updateAlert(
+  id: string,
+  data: Partial<Pick<Alert, "type" | "condition" | "value" | "cooldown_minutes">>
+): Promise<void> {
+  const db = getAdminClient();
+  const { error } = await db.from("alerts").update(data).eq("id", id);
+  if (error) throw new Error(`updateAlert: ${error.message}`);
+}
+
 export async function updateAlertActive(id: string, isActive: boolean): Promise<void> {
   const db = getAdminClient();
   const { error } = await db

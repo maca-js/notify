@@ -1,28 +1,22 @@
-"use client";
+'use client';
 
-import { useTransition } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Trash2, Plus } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import type { AlertWithAsset } from "@/entities/alert/model";
-import { ALERT_TYPE_LABELS, ALERT_CONDITION_LABELS } from "@/entities/alert/model";
-import { toggleAlertAction, deleteAlertAction } from "./actions";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { AlertWithAsset } from '@/entities/alert/model';
+import { ALERT_CONDITION_LABELS, ALERT_TYPE_LABELS } from '@/entities/alert/model';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { useTransition } from 'react';
+import { deleteAlertAction, toggleAlertAction } from './actions';
 
 type Props = {
   alerts: AlertWithAsset[];
   onNewAlert: (assetId: string, assetName: string) => void;
+  onEditAlert: (alert: AlertWithAsset) => void;
 };
 
-export function AlertList({ alerts, onNewAlert }: Props) {
+export function AlertList({ alerts, onNewAlert, onEditAlert }: Props) {
   const [isPending, startTransition] = useTransition();
 
   if (alerts.length === 0) {
@@ -53,11 +47,7 @@ export function AlertList({ alerts, onNewAlert }: Props) {
                 <h3 className="font-semibold">{assetName}</h3>
                 <Badge variant="outline">{symbol.toUpperCase()}</Badge>
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onNewAlert(assetId, assetName)}
-              >
+              <Button size="sm" variant="outline" onClick={() => onNewAlert(assetId, assetName)}>
                 <Plus className="h-3 w-3 mr-1" />
                 Add alert
               </Button>
@@ -77,35 +67,28 @@ export function AlertList({ alerts, onNewAlert }: Props) {
                 {assetAlerts.map((alert) => (
                   <TableRow key={alert.id}>
                     <TableCell>{ALERT_TYPE_LABELS[alert.type]}</TableCell>
-                    <TableCell className="capitalize">
-                      {ALERT_CONDITION_LABELS[alert.condition]}
-                    </TableCell>
+                    <TableCell className="capitalize">{ALERT_CONDITION_LABELS[alert.condition]}</TableCell>
                     <TableCell>
-                      {alert.type === "percent_change"
-                        ? `${alert.value}%`
-                        : `$${alert.value.toLocaleString()}`}
+                      {alert.type === 'percent_change' ? `${alert.value}%` : `$${alert.value.toLocaleString()}`}
                     </TableCell>
                     <TableCell>{alert.cooldown_minutes}m</TableCell>
                     <TableCell>
                       <Switch
                         checked={alert.is_active}
                         disabled={isPending}
-                        onCheckedChange={(checked) =>
-                          startTransition(() =>
-                            toggleAlertAction(alert.id, checked)
-                          )
-                        }
+                        onCheckedChange={(checked) => startTransition(() => toggleAlertAction(alert.id, checked))}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="flex items-center gap-2 justify-end">
+                      <Button size="sm" variant="ghost" disabled={isPending} onClick={() => onEditAlert(alert)}>
+                        <Pencil className="h-3 w-3" />
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
                         className="text-destructive hover:text-destructive"
                         disabled={isPending}
-                        onClick={() =>
-                          startTransition(() => deleteAlertAction(alert.id))
-                        }
+                        onClick={() => startTransition(() => deleteAlertAction(alert.id))}
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>

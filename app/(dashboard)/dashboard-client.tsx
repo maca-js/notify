@@ -33,10 +33,15 @@ export function DashboardClient({ watchlist, alerts, notifications }: Props) {
   const [alertModal, setAlertModal] = useState<{
     assetId: string;
     assetName: string;
+    alert?: AlertWithAsset;
   } | null>(null);
 
   function openAlertForm(assetId: string, assetName: string) {
     setAlertModal({ assetId, assetName });
+  }
+
+  function openEditAlert(alert: AlertWithAsset) {
+    setAlertModal({ assetId: alert.asset_id, assetName: alert.assets.name, alert });
   }
 
   return (
@@ -68,7 +73,7 @@ export function DashboardClient({ watchlist, alerts, notifications }: Props) {
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">
               Active alerts · {alerts.filter((a) => a.is_active).length}
             </p>
-            <AlertList alerts={alerts} onNewAlert={openAlertForm} />
+            <AlertList alerts={alerts} onNewAlert={openAlertForm} onEditAlert={openEditAlert} />
           </div>
         </TabsContent>
 
@@ -86,6 +91,7 @@ export function DashboardClient({ watchlist, alerts, notifications }: Props) {
           assetName={alertModal.assetName}
           open={true}
           onClose={() => setAlertModal(null)}
+          alert={alertModal.alert}
         />
       )}
     </>
