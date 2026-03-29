@@ -1,7 +1,7 @@
 import { getSession } from "@/shared/lib/auth";
 import { getAdminClient } from "@/shared/api/supabase";
 import { getAlertsForUser } from "@/entities/alert/queries";
-import { DashboardClient } from "./dashboard-client";
+import { DashboardClient } from "../dashboard-client";
 
 export default async function DashboardPage() {
   const session = await getSession();
