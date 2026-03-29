@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendMessage } from "@/shared/api/telegram";
 import { getAdminClient } from "@/shared/api/supabase";
+import { upsertUser } from "@/entities/user/queries";
 
 type TelegramUpdate = {
   message?: {
     chat: { id: number };
     text?: string;
-    from?: { first_name?: string };
+    from?: {
+      first_name?: string;
+      last_name?: string;
+      username?: string;
+    };
   };
 };
 
@@ -20,7 +25,41 @@ export async function POST(req: NextRequest) {
   const text = message.text.trim();
   const firstName = message.from?.first_name ?? "there";
 
-  if (text === "/start") {
+  if (text.startsWith("/start")) {
+    const token = text.split(" ")[1];
+
+    if (token) {
+      const db = getAdminClient();
+      const { data: authToken } = await db
+        .from("auth_tokens")
+        .select("id, verified_at, expires_at")
+        .eq("token", token)
+        .is("verified_at", null)
+        .gt("expires_at", new Date().toISOString())
+        .single();
+
+      if (!authToken) {
+        await sendMessage(chatId, "This login link has expired. Please go back to the app and try again.");
+        return NextResponse.json({ ok: true });
+      }
+
+      const user = await upsertUser({
+        telegram_id: chatId,
+        first_name: firstName,
+        last_name: message.from?.last_name ?? null,
+        username: message.from?.username ?? null,
+        photo_url: null,
+      });
+
+      await db
+        .from("auth_tokens")
+        .update({ verified_at: new Date().toISOString(), user_id: user.id })
+        .eq("token", token);
+
+      await sendMessage(chatId, `✅ You're logged in, <b>${firstName}</b>!\n\nGo back to the app — the page will update automatically.`);
+      return NextResponse.json({ ok: true });
+    }
+
     await sendMessage(
       chatId,
       `👋 Hello <b>${firstName}</b>!\n\nThis bot sends you price alerts for your tracked crypto assets.\n\nSet up your watchlist and alerts at <b>${process.env.NEXT_PUBLIC_APP_URL}</b>`

@@ -1,14 +1,11 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/shared/lib/auth";
-import { TelegramLoginButton } from "@/features/auth/TelegramLoginButton";
+import { TelegramLoginFlow } from "@/features/auth/TelegramLoginFlow";
 import { Bell, TrendingUp, Zap } from "lucide-react";
 
 export default async function LandingPage() {
   const session = await getSession();
   if (session) redirect("/dashboard");
-
-  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME!;
-  const authUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/telegram`;
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-12 p-8">
@@ -47,7 +44,7 @@ export default async function LandingPage() {
         <p className="text-sm text-muted-foreground">
           Sign in with Telegram to get started — no password needed
         </p>
-        <TelegramLoginButton botUsername={botUsername} authUrl={authUrl} />
+        <TelegramLoginFlow />
       </div>
     </main>
   );

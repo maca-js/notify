@@ -54,6 +54,8 @@ create table if not exists notifications (
   sent_at timestamptz default now() not null
 );
 
+
+
 -- Indexes for common queries
 create index if not exists watchlist_user_id_idx on watchlist(user_id);
 create index if not exists alerts_user_id_idx on alerts(user_id);
