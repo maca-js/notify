@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Loader2 } from "lucide-react";
 import type { CoinSearchResult } from "@/shared/api/coingecko";
-import type { StockInfo } from "@/shared/api/yahoo-finance";
+import type { StockSearchResult } from "@/shared/api/polygon";
 import { addToWatchlist } from "./actions";
 
 type AssetType = "crypto" | "stock";
@@ -44,18 +44,26 @@ function CryptoSearch() {
   const [searching, setSearching] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const abortRef = useRef<AbortController | null>(null);
 
-  async function handleSearch() {
-    if (!query.trim()) return;
-    setSearching(true);
-    try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      setResults(data);
-    } finally {
-      setSearching(false);
-    }
-  }
+  useEffect(() => {
+    if (!query.trim()) { setResults([]); return; }
+    const timer = setTimeout(async () => {
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal: abortRef.current.signal });
+        const data = await res.json();
+        setResults(data);
+      } catch (e) {
+        if ((e as Error).name !== "AbortError") setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   function handleAdd(coin: CoinSearchResult) {
     startTransition(async () => {
@@ -66,20 +74,16 @@ function CryptoSearch() {
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-2">
+      <div className="relative">
         <Input
           placeholder="Search crypto (e.g. bitcoin, ethereum...)"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          className="pr-8"
         />
-        <Button onClick={handleSearch} disabled={searching} variant="outline" size="icon">
-          {searching ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Search className="h-4 w-4" />
-          )}
-        </Button>
+        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+          {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+        </div>
       </div>
 
       {results.length > 0 && (
@@ -118,92 +122,75 @@ function CryptoSearch() {
 }
 
 function StockSearch() {
-  const [ticker, setTicker] = useState("");
-  const [result, setResult] = useState<StockInfo | null>(null);
-  const [notFound, setNotFound] = useState(false);
-  const [looking, setLooking] = useState(false);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<StockSearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [added, setAdded] = useState(false);
+  const [addedSymbols, setAddedSymbols] = useState<Set<string>>(new Set());
+  const abortRef = useRef<AbortController | null>(null);
 
-  async function handleLookup() {
-    if (!ticker.trim()) return;
-    setLooking(true);
-    setNotFound(false);
-    setResult(null);
-    setAdded(false);
-    try {
-      const res = await fetch(`/api/stock-lookup?ticker=${encodeURIComponent(ticker.trim())}`);
-      const data: StockInfo | null = await res.json();
-      if (data) {
-        setResult(data);
-      } else {
-        setNotFound(true);
+  useEffect(() => {
+    if (!query.trim()) { setResults([]); return; }
+    const timer = setTimeout(async () => {
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/stock-search?q=${encodeURIComponent(query)}`, { signal: abortRef.current.signal });
+        const data = await res.json();
+        setResults(data);
+      } catch (e) {
+        if ((e as Error).name !== "AbortError") setResults([]);
+      } finally {
+        setSearching(false);
       }
-    } finally {
-      setLooking(false);
-    }
-  }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [query]);
 
-  function handleAdd() {
-    if (!result) return;
+  function handleAdd(stock: StockSearchResult) {
     startTransition(async () => {
-      await addToWatchlist(result.symbol, result.symbol, result.name, "stock");
-      setAdded(true);
+      await addToWatchlist(stock.symbol, stock.symbol, stock.name, "stock");
+      setAddedSymbols((prev) => new Set(prev).add(stock.symbol));
     });
   }
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-2">
+      <div className="relative">
         <Input
-          placeholder="Enter ticker (e.g. AAPL, MSFT, TSLA)"
-          value={ticker}
-          onChange={(e) => {
-            setTicker(e.target.value.toUpperCase());
-            setResult(null);
-            setNotFound(false);
-            setAdded(false);
-          }}
-          onKeyDown={(e) => e.key === "Enter" && handleLookup()}
+          placeholder="Search stocks (e.g. Microsoft, Apple...)"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="pr-8"
         />
-        <Button
-          onClick={handleLookup}
-          disabled={looking || !ticker.trim()}
-          variant="outline"
-          size="icon"
-        >
-          {looking ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Search className="h-4 w-4" />
-          )}
-        </Button>
+        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+          {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+        </div>
       </div>
 
-      {notFound && (
-        <p className="text-sm text-muted-foreground">
-          Ticker not found. Check the symbol and try again.
-        </p>
-      )}
-
-      {result && (
-        <div className="border rounded-md px-3 py-2 flex items-center justify-between gap-2 bg-background">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="font-medium truncate">{result.name}</span>
-            <Badge variant="secondary" className="shrink-0">
-              {result.symbol}
-            </Badge>
-          </div>
-          <Button
-            size="sm"
-            variant={added ? "secondary" : "default"}
-            onClick={handleAdd}
-            disabled={isPending || added}
-            className="shrink-0"
-          >
-            {added ? "Added" : <><Plus className="h-3 w-3 mr-1" />Add</>}
-          </Button>
-        </div>
+      {results.length > 0 && (
+        <ul className="border rounded-md divide-y bg-background shadow-sm max-h-64 overflow-y-auto">
+          {results.map((stock) => (
+            <li key={stock.symbol} className="flex items-center justify-between px-3 py-2 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-medium truncate">{stock.name}</span>
+                <Badge variant="secondary" className="shrink-0">
+                  {stock.symbol}
+                </Badge>
+              </div>
+              <Button
+                size="sm"
+                variant={addedSymbols.has(stock.symbol) ? "secondary" : "default"}
+                onClick={() => handleAdd(stock)}
+                disabled={isPending || addedSymbols.has(stock.symbol)}
+                className="shrink-0"
+              >
+                {addedSymbols.has(stock.symbol) ? "Added" : <><Plus className="h-3 w-3 mr-1" />Add</>}
+              </Button>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

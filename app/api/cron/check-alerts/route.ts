@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllActiveAlerts, updateAlertTriggered } from "@/entities/alert/queries";
 import { getCoinPrices, type AssetPrice } from "@/shared/api/coingecko";
-import { getStockPrices } from "@/shared/api/yahoo-finance";
+import { getStockPrices } from "@/shared/api/polygon";
 import { sendMessage } from "@/shared/api/telegram";
 import { evaluateAlert, isInCooldown, formatAlertMessage } from "@/shared/lib/alert-evaluator";
 import { getAdminClient } from "@/shared/api/supabase";
