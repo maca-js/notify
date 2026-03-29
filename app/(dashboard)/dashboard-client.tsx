@@ -2,13 +2,11 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WatchlistTable } from "@/features/watchlist/WatchlistTable";
 import { AssetSearch } from "@/features/watchlist/AssetSearch";
 import { AlertList } from "@/features/alerts/AlertList";
 import { AlertForm } from "@/features/alerts/AlertForm";
 import { NotificationLog } from "@/features/notifications/NotificationLog";
-import { Separator } from "@/components/ui/separator";
 import type { AlertWithAsset } from "@/entities/alert/model";
 import type { Database } from "@/shared/api/supabase.types";
 
@@ -43,63 +41,41 @@ export function DashboardClient({ watchlist, alerts, notifications }: Props) {
   return (
     <>
       <Tabs defaultValue="watchlist">
-        <TabsList className="mb-6">
+        <TabsList variant="line" className="mb-8 w-full justify-start gap-6">
           <TabsTrigger value="watchlist">Watchlist</TabsTrigger>
           <TabsTrigger value="alerts">Alerts</TabsTrigger>
-          <TabsTrigger value="history">Notification history</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="watchlist">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Add asset</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <AssetSearch />
-              </CardContent>
-            </Card>
-
-            <Separator />
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  Your watchlist ({watchlist.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <WatchlistTable
-                  items={watchlist}
-                  onManageAlerts={openAlertForm}
-                />
-              </CardContent>
-            </Card>
+          <div className="space-y-10">
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">Add asset</p>
+              <AssetSearch />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">
+                Watchlist · {watchlist.length}
+              </p>
+              <WatchlistTable items={watchlist} onManageAlerts={openAlertForm} />
+            </div>
           </div>
         </TabsContent>
 
         <TabsContent value="alerts">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                Active alerts ({alerts.filter((a) => a.is_active).length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AlertList alerts={alerts} onNewAlert={openAlertForm} />
-            </CardContent>
-          </Card>
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">
+              Active alerts · {alerts.filter((a) => a.is_active).length}
+            </p>
+            <AlertList alerts={alerts} onNewAlert={openAlertForm} />
+          </div>
         </TabsContent>
 
         <TabsContent value="history">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Recent notifications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <NotificationLog notifications={notifications} />
-            </CardContent>
-          </Card>
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">Recent notifications</p>
+            <NotificationLog notifications={notifications} />
+          </div>
         </TabsContent>
       </Tabs>
 

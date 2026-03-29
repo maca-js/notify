@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/shared/lib/auth";
 import { logoutAction } from "@/features/auth/logout-action";
 import { Button } from "@/components/ui/button";
-import { Bell } from "lucide-react";
 
 export default async function DashboardLayout({
   children,
@@ -14,25 +13,20 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b bg-background sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-primary" />
-            <span className="font-semibold">CryptoAlert</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">
-              {session.firstName}
-            </span>
+      <header className="border-b border-border/50 sticky top-0 z-10 bg-background">
+        <div className="max-w-3xl mx-auto px-6 h-12 flex items-center justify-between">
+          <span className="text-sm font-medium">CryptoAlert</span>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-muted-foreground">{session.firstName}</span>
             <form action={logoutAction}>
-              <Button variant="ghost" size="sm" type="submit">
+              <Button variant="ghost" size="sm" className="text-xs h-7 px-2" type="submit">
                 Sign out
               </Button>
             </form>
           </div>
         </div>
       </header>
-      <div className="flex-1 max-w-5xl mx-auto w-full px-4 py-8">{children}</div>
+      <div className="flex-1 max-w-3xl mx-auto w-full px-6 py-10">{children}</div>
     </div>
   );
 }

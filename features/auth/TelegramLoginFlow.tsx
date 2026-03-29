@@ -66,16 +66,13 @@ export function TelegramLoginFlow() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-3 text-center">
+    <div className="flex flex-col items-center gap-4 text-center">
       <a href={deepLink} target="_blank" rel="noopener noreferrer">
-        <Button size="lg">Open Telegram to confirm</Button>
+        <Button size="lg">Open Telegram</Button>
       </a>
-      <p className="text-sm text-muted-foreground">
-        Tap <strong>Start</strong> in the bot chat, then come back here
-      </p>
       <p className="text-xs text-muted-foreground animate-pulse">Waiting for confirmation...</p>
       <button
-        className="text-xs text-muted-foreground underline"
+        className="text-xs text-muted-foreground underline underline-offset-4"
         onClick={() => {
           sessionStorage.removeItem("auth_token");
           sessionStorage.removeItem("auth_link");
