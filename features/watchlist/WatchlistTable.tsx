@@ -1,18 +1,11 @@
-"use client";
+'use client';
 
-import { useTransition } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Trash2, Bell } from "lucide-react";
-import { removeFromWatchlist } from "./actions";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Bell, Plus, Trash2 } from 'lucide-react';
+import { useTransition } from 'react';
+import { removeFromWatchlist } from './actions';
 
 type WatchlistItem = {
   id: string;
@@ -21,7 +14,7 @@ type WatchlistItem = {
     external_id: string;
     symbol: string;
     name: string;
-    asset_type: "crypto" | "stock";
+    asset_type: 'crypto' | 'stock';
   } | null;
 };
 
@@ -47,7 +40,6 @@ export function WatchlistTable({ items, onManageAlerts }: Props) {
         <TableRow>
           <TableHead>Asset</TableHead>
           <TableHead>Symbol</TableHead>
-          <TableHead>Type</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -61,27 +53,19 @@ export function WatchlistTable({ items, onManageAlerts }: Props) {
               <TableCell>
                 <Badge variant="outline">{asset.symbol.toUpperCase()}</Badge>
               </TableCell>
-              <TableCell>
-                <Badge variant="secondary">{asset.asset_type}</Badge>
-              </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onManageAlerts(asset.id, asset.name)}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => onManageAlerts(asset.id, asset.name)}>
                     <Bell className="h-3 w-3 mr-1" />
-                    Alerts
+                    Alert
+                    <Plus className="h-3 w-3 ml-1" />
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="text-destructive hover:text-destructive"
                     disabled={isPending}
-                    onClick={() =>
-                      startTransition(() => removeFromWatchlist(item.id))
-                    }
+                    onClick={() => startTransition(() => removeFromWatchlist(item.id))}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
