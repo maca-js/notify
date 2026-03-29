@@ -7,12 +7,15 @@ export type CoinSearchResult = {
   thumb: string;
 };
 
-export type CoinPrice = {
+export type AssetPrice = {
   usd: number;
   usd_24h_change: number;
 };
 
-export type CoinPriceMap = Record<string, CoinPrice>;
+/** @deprecated use AssetPrice */
+export type CoinPrice = AssetPrice;
+
+export type CoinPriceMap = Record<string, AssetPrice>;
 
 export async function searchCoins(query: string): Promise<CoinSearchResult[]> {
   const res = await fetch(

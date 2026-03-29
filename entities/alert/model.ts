@@ -8,7 +8,8 @@ export type AlertWithAsset = Alert & {
     id: string;
     name: string;
     symbol: string;
-    coingecko_id: string;
+    external_id: string;
+    asset_type: "crypto" | "stock";
   };
 };
 

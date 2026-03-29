@@ -1,12 +1,12 @@
 import type { Database } from "@/shared/api/supabase.types";
-import type { CoinPrice } from "@/shared/api/coingecko";
+import type { AssetPrice } from "@/shared/api/coingecko";
 
 type Alert = Database["public"]["Tables"]["alerts"]["Row"];
 
 /**
  * Returns true if the alert condition is met by the current price data.
  */
-export function evaluateAlert(alert: Alert, price: CoinPrice): boolean {
+export function evaluateAlert(alert: Alert, price: AssetPrice): boolean {
   if (alert.type === "threshold") {
     if (alert.condition === "above") return price.usd >= alert.value;
     if (alert.condition === "below") return price.usd <= alert.value;
@@ -35,7 +35,7 @@ export function formatAlertMessage(
   assetName: string,
   assetSymbol: string,
   alert: Alert,
-  price: CoinPrice
+  price: AssetPrice
 ): string {
   const priceStr = `$${price.usd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
   const changeStr = `${price.usd_24h_change >= 0 ? "+" : ""}${price.usd_24h_change.toFixed(2)}%`;

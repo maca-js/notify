@@ -6,7 +6,7 @@ export async function getAlertsForUser(userId: string): Promise<AlertWithAsset[]
   const db = getAdminClient();
   const { data, error } = await db
     .from("alerts")
-    .select("*, assets(id, name, symbol, coingecko_id)")
+    .select("*, assets(id, name, symbol, external_id, asset_type)")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -18,7 +18,7 @@ export async function getAllActiveAlerts(): Promise<AlertWithAsset[]> {
   const db = getAdminClient();
   const { data, error } = await db
     .from("alerts")
-    .select("*, assets(id, name, symbol, coingecko_id)")
+    .select("*, assets(id, name, symbol, external_id, asset_type)")
     .eq("is_active", true);
 
   if (error) throw new Error(`getAllActiveAlerts: ${error.message}`);

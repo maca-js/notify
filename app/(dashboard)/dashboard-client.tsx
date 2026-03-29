@@ -14,9 +14,10 @@ type WatchlistItem = {
   id: string;
   assets: {
     id: string;
-    coingecko_id: string;
+    external_id: string;
     symbol: string;
     name: string;
+    asset_type: "crypto" | "stock";
   } | null;
 };
 

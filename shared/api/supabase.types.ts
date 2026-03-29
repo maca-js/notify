@@ -21,9 +21,10 @@ type UserRow = {
 
 type AssetRow = {
   id: string;
-  coingecko_id: string;
+  external_id: string;
   symbol: string;
   name: string;
+  asset_type: "crypto" | "stock";
   created_at: string;
 };
 
@@ -76,7 +77,7 @@ export type Database = {
       };
       assets: {
         Row: AssetRow;
-        Insert: Omit<AssetRow, "id" | "created_at">;
+        Insert: Omit<AssetRow, "id" | "created_at" | "asset_type"> & { asset_type?: "crypto" | "stock" };
         Update: Partial<Omit<AssetRow, "id" | "created_at">>;
         Relationships: [];
       };

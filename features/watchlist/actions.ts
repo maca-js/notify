@@ -5,25 +5,27 @@ import { getAdminClient } from "@/shared/api/supabase";
 import { getSession } from "@/shared/lib/auth";
 
 export async function addToWatchlist(
-  coingeckoId: string,
+  externalId: string,
   symbol: string,
-  name: string
+  name: string,
+  assetType: "crypto" | "stock" = "crypto"
 ) {
   const session = await getSession();
   if (!session) throw new Error("Not authenticated");
 
   const db = getAdminClient();
 
-  // Upsert asset
   const { data: asset, error: assetError } = await db
     .from("assets")
-    .upsert({ coingecko_id: coingeckoId, symbol, name }, { onConflict: "coingecko_id" })
+    .upsert(
+      { external_id: externalId, symbol, name, asset_type: assetType },
+      { onConflict: "external_id" }
+    )
     .select()
     .single();
 
   if (assetError) throw new Error(`addToWatchlist asset: ${assetError.message}`);
 
-  // Add to watchlist (ignore duplicate)
   const { error } = await db
     .from("watchlist")
     .upsert({ user_id: session.userId, asset_id: asset.id }, { onConflict: "user_id,asset_id" });
@@ -54,7 +56,7 @@ export async function getWatchlist() {
   const db = getAdminClient();
   const { data, error } = await db
     .from("watchlist")
-    .select("id, created_at, assets(id, coingecko_id, symbol, name)")
+    .select("id, created_at, assets(id, external_id, symbol, name, asset_type)")
     .eq("user_id", session.userId)
     .order("created_at", { ascending: false });
 

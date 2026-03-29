@@ -12,7 +12,7 @@ export default async function DashboardPage() {
   const [watchlistResult, alerts, notificationsResult] = await Promise.all([
     db
       .from("watchlist")
-      .select("id, created_at, assets(id, coingecko_id, symbol, name)")
+      .select("id, created_at, assets(id, external_id, symbol, name, asset_type)")
       .eq("user_id", session.userId)
       .order("created_at", { ascending: false }),
     getAlertsForUser(session.userId),

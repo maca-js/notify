@@ -13,9 +13,10 @@ create table if not exists users (
 
 create table if not exists assets (
   id uuid primary key default gen_random_uuid(),
-  coingecko_id text unique not null,
+  external_id text unique not null,
   symbol text not null,
   name text not null,
+  asset_type text not null default 'crypto' check (asset_type in ('crypto', 'stock')),
   created_at timestamptz default now() not null
 );
 

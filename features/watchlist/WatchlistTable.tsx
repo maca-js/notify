@@ -18,9 +18,10 @@ type WatchlistItem = {
   id: string;
   assets: {
     id: string;
-    coingecko_id: string;
+    external_id: string;
     symbol: string;
     name: string;
+    asset_type: "crypto" | "stock";
   } | null;
 };
 
@@ -46,6 +47,7 @@ export function WatchlistTable({ items, onManageAlerts }: Props) {
         <TableRow>
           <TableHead>Asset</TableHead>
           <TableHead>Symbol</TableHead>
+          <TableHead>Type</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -58,6 +60,9 @@ export function WatchlistTable({ items, onManageAlerts }: Props) {
               <TableCell className="font-medium">{asset.name}</TableCell>
               <TableCell>
                 <Badge variant="outline">{asset.symbol.toUpperCase()}</Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary">{asset.asset_type}</Badge>
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
