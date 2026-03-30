@@ -95,7 +95,7 @@ export function AlertForm({ assetId, assetName, open, onClose, alert }: Props) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="percent_change">% change (24h)</SelectItem>
-                <SelectItem value="threshold">Price threshold</SelectItem>
+                <SelectItem value="threshold">Price</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -136,7 +136,7 @@ export function AlertForm({ assetId, assetName, open, onClose, alert }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label>Cooldown (minutes)</Label>
+            <Label>Cooldown</Label>
             <Select value={cooldown} onValueChange={setCooldown}>
               <SelectTrigger>
                 <SelectValue />
@@ -146,6 +146,7 @@ export function AlertForm({ assetId, assetName, open, onClose, alert }: Props) {
                 <SelectItem value="60">1 hour</SelectItem>
                 <SelectItem value="120">2 hours</SelectItem>
                 <SelectItem value="360">6 hours</SelectItem>
+                <SelectItem value="720">12 hours</SelectItem>
                 <SelectItem value="1440">24 hours</SelectItem>
               </SelectContent>
             </Select>

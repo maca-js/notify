@@ -15,7 +15,7 @@ export type AlertWithAsset = Alert & {
 
 export const ALERT_TYPE_LABELS: Record<Alert["type"], string> = {
   percent_change: "% change (24h)",
-  threshold: "Price threshold",
+  threshold: "Price",
 };
 
 export const ALERT_CONDITION_LABELS: Record<Alert["condition"], string> = {

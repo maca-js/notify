@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Bell, Plus, Trash2 } from 'lucide-react';
 import { useTransition } from 'react';
@@ -35,46 +36,82 @@ export function WatchlistTable({ items, onManageAlerts }: Props) {
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Asset</TableHead>
-          <TableHead>Symbol</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <>
+      {/* Mobile card layout */}
+      <div className="space-y-3 sm:hidden">
         {items.map((item) => {
           if (!item.assets) return null;
           const asset = item.assets;
           return (
-            <TableRow key={item.id}>
-              <TableCell className="font-medium">{asset.name}</TableCell>
-              <TableCell>
-                <Badge variant="outline">{asset.symbol.toUpperCase()}</Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button size="sm" variant="outline" onClick={() => onManageAlerts(asset.id, asset.name)}>
-                    <Bell className="h-3 w-3 mr-1" />
-                    Alert
-                    <Plus className="h-3 w-3 ml-1" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-destructive hover:text-destructive"
-                    disabled={isPending}
-                    onClick={() => startTransition(() => removeFromWatchlist(item.id))}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
+            <Card key={item.id} className="px-4 py-3 flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-medium text-sm truncate">{asset.name}</span>
+                <Badge variant="outline" className="shrink-0">{asset.symbol.toUpperCase()}</Badge>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <Button size="sm" variant="outline" onClick={() => onManageAlerts(asset.id, asset.name)}>
+                  <Bell className="h-3.5 w-3.5" />
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive"
+                  disabled={isPending}
+                  onClick={() => startTransition(() => removeFromWatchlist(item.id))}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </Card>
           );
         })}
-      </TableBody>
-    </Table>
+      </div>
+
+      {/* Desktop table layout */}
+      <div className="hidden sm:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Asset</TableHead>
+              <TableHead>Symbol</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((item) => {
+              if (!item.assets) return null;
+              const asset = item.assets;
+              return (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{asset.name}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{asset.symbol.toUpperCase()}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button size="sm" variant="outline" onClick={() => onManageAlerts(asset.id, asset.name)}>
+                        <Bell className="h-3 w-3 mr-1" />
+                        Alert
+                        <Plus className="h-3 w-3 ml-1" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive"
+                        disabled={isPending}
+                        onClick={() => startTransition(() => removeFromWatchlist(item.id))}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }
