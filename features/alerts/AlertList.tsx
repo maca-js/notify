@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { AlertWithAsset } from '@/entities/alert/model';
-import { ALERT_CONDITION_LABELS, getAlertTypeLabel } from '@/entities/alert/model';
+import { getAlertSummary } from '@/entities/alert/model';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useTransition } from 'react';
 import { deleteAlertAction, toggleAlertAction } from './actions';
@@ -64,25 +64,20 @@ export function AlertList({ alerts, onNewAlert, onEditAlert }: Props) {
               {assetAlerts.map((alert) => (
                 <Card key={alert.id} className="px-4 py-3 gap-2">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm truncate">
-                      {getAlertTypeLabel(alert.type, alert.timeframe)}
-                      <span className="text-muted-foreground"> · {ALERT_CONDITION_LABELS[alert.condition]} · </span>
-                      <span className="font-medium">{alert.type === 'percent_change' ? `${alert.value}%` : `$${alert.value.toLocaleString()}`}</span>
-                    </span>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <span className="text-xs text-muted-foreground mr-1">{alert.is_active ? 'Active' : 'Inactive'}</span>
+                    <span className="text-sm truncate">{getAlertSummary(alert)}</span>
+                    <div className="flex items-center gap-0 shrink-0">
                       <Switch
                         checked={alert.is_active}
                         disabled={isPending}
                         onCheckedChange={(checked) => startTransition(() => toggleAlertAction(alert.id, checked))}
                       />
-                      <Button size="sm" variant="ghost" disabled={isPending} onClick={() => onEditAlert(alert)}>
+                      <Button size="sm" variant="ghost" className="p-0 h-auto w-auto ml-2" disabled={isPending} onClick={() => onEditAlert(alert)}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-destructive hover:text-destructive"
+                        className="p-0 h-auto w-auto ml-2 text-destructive hover:text-destructive"
                         disabled={isPending}
                         onClick={() => startTransition(() => deleteAlertAction(alert.id))}
                       >
@@ -99,9 +94,7 @@ export function AlertList({ alerts, onNewAlert, onEditAlert }: Props) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Condition</TableHead>
-                    <TableHead>Value</TableHead>
+                    <TableHead colSpan={3}>Alert</TableHead>
                     <TableHead>Cooldown</TableHead>
                     <TableHead>Active</TableHead>
                     <TableHead></TableHead>
@@ -110,11 +103,7 @@ export function AlertList({ alerts, onNewAlert, onEditAlert }: Props) {
                 <TableBody>
                   {assetAlerts.map((alert) => (
                     <TableRow key={alert.id}>
-                      <TableCell>{getAlertTypeLabel(alert.type, alert.timeframe)}</TableCell>
-                      <TableCell className="capitalize">{ALERT_CONDITION_LABELS[alert.condition]}</TableCell>
-                      <TableCell>
-                        {alert.type === 'percent_change' ? `${alert.value}%` : `$${alert.value.toLocaleString()}`}
-                      </TableCell>
+                      <TableCell colSpan={3}>{getAlertSummary(alert)}</TableCell>
                       <TableCell>{formatCooldown(alert.cooldown_minutes)}</TableCell>
                       <TableCell>
                         <Switch

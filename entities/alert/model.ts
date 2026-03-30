@@ -22,3 +22,12 @@ export const ALERT_CONDITION_LABELS: Record<Alert["condition"], string> = {
   above: "goes above",
   below: "goes below",
 };
+
+export function getAlertSummary(alert: Alert): string {
+  const direction = alert.condition === "above" ? "goes up" : "goes down";
+  const value = alert.type === "percent_change"
+    ? `${alert.value}%`
+    : `$${alert.value.toLocaleString()}`;
+  const timeframe = alert.type === "percent_change" ? ` (${alert.timeframe})` : "";
+  return `${direction} ${value}${timeframe}`;
+}
