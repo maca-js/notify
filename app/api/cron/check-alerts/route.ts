@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllActiveAlerts, updateAlertTriggered } from "@/entities/alert/queries";
 import { getCoinPrices, type AssetPrice } from "@/shared/api/coingecko";
-import { getStockPrices } from "@/shared/api/polygon";
+import { getStockPrices, getStockHourlyChanges } from "@/shared/api/finnhub";
 import { sendMessage } from "@/shared/api/telegram";
 import { evaluateAlert, isInCooldown, formatAlertMessage } from "@/shared/lib/alert-evaluator";
 import { getAdminClient } from "@/shared/api/supabase";
@@ -25,10 +25,23 @@ export async function POST(req: NextRequest) {
     alerts.filter((a) => a.assets.asset_type === "stock").map((a) => a.assets.external_id)
   )];
 
-  const [cryptoPrices, stockPrices] = await Promise.all([
+  const stockSymbolsWith1h = [...new Set(
+    alerts
+      .filter((a) => a.assets.asset_type === "stock" && a.timeframe === "1h")
+      .map((a) => a.assets.external_id)
+  )];
+
+  const [cryptoPrices, stockPrices, hourlyChanges] = await Promise.all([
     getCoinPrices(cryptoIds),
     getStockPrices(stockSymbols),
+    stockSymbolsWith1h.length > 0 ? getStockHourlyChanges(stockSymbolsWith1h) : Promise.resolve({} as Record<string, number>),
   ]);
+
+  for (const sym of stockSymbolsWith1h) {
+    if (stockPrices[sym]) {
+      stockPrices[sym].usd_1h_change = hourlyChanges[sym] ?? 0;
+    }
+  }
 
   const prices: Record<string, AssetPrice> = { ...cryptoPrices, ...stockPrices };
 

@@ -9,6 +9,7 @@ import { AlertForm } from "@/features/alerts/AlertForm";
 import { NotificationLog } from "@/features/notifications/NotificationLog";
 import type { AlertWithAsset } from "@/entities/alert/model";
 import type { Database } from "@/shared/api/supabase.types";
+import type { AssetPrice } from "@/shared/api/coingecko";
 
 type WatchlistItem = {
   id: string;
@@ -27,9 +28,10 @@ type Props = {
   watchlist: WatchlistItem[];
   alerts: AlertWithAsset[];
   notifications: Notification[];
+  prices: Record<string, AssetPrice>;
 };
 
-export function DashboardClient({ watchlist, alerts, notifications }: Props) {
+export function DashboardClient({ watchlist, alerts, notifications, prices }: Props) {
   const [alertModal, setAlertModal] = useState<{
     assetId: string;
     assetName: string;
@@ -63,7 +65,7 @@ export function DashboardClient({ watchlist, alerts, notifications }: Props) {
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">
                 Watchlist · {watchlist.length}
               </p>
-              <WatchlistTable items={watchlist} onManageAlerts={openAlertForm} />
+              <WatchlistTable items={watchlist} prices={prices} onManageAlerts={openAlertForm} />
             </div>
           </div>
         </TabsContent>

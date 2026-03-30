@@ -30,11 +30,19 @@ export async function searchCoins(query: string): Promise<CoinSearchResult[]> {
 
 export async function getCoinPrices(ids: string[]): Promise<CoinPriceMap> {
   if (ids.length === 0) return {};
-  const idsParam = ids.join(",");
-  const res = await fetch(
-    `${BASE_URL}/simple/price?ids=${idsParam}&vs_currencies=usd&include_1hr_change=true&include_24hr_change=true`,
-    { cache: "no-store" }
-  );
-  if (!res.ok) throw new Error("CoinGecko price fetch failed");
-  return res.json();
+  try {
+    const idsParam = ids.join(",");
+    const res = await fetch(
+      `${BASE_URL}/simple/price?ids=${idsParam}&vs_currencies=usd&include_1hr_change=true&include_24hr_change=true`,
+      { next: { revalidate: 120 } }
+    );
+    if (!res.ok) {
+      console.error("[coingecko] price fetch failed", res.status, await res.text());
+      return {};
+    }
+    return res.json();
+  } catch (err) {
+    console.error("[coingecko] getCoinPrices error:", err);
+    return {};
+  }
 }

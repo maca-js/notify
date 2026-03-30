@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { lookupStock } from "@/shared/api/polygon";
+import { lookupStock } from "@/shared/api/finnhub";
 
 export async function GET(req: NextRequest) {
   const ticker = req.nextUrl.searchParams.get("ticker");

@@ -24,7 +24,8 @@ stock-notification/
 │   │   ├── cron/
 │   │   │   └── check-alerts/route.ts  # POST – evaluate alerts & send notifications
 │   │   ├── search/route.ts         # GET  – search coins via CoinGecko
-│   │   ├── stock-lookup/route.ts   # GET  – look up stock via Yahoo Finance
+│   │   ├── stock-search/route.ts   # GET  – search stocks via Finnhub
+│   │   ├── stock-lookup/route.ts   # GET  – look up stock via Finnhub
 │   │   └── telegram/webhook/route.ts  # POST – receive Telegram updates
 │   ├── layout.tsx
 │   └── page.tsx                    # Landing + login
@@ -41,7 +42,7 @@ stock-notification/
 │   ├── api/
 │   │   ├── supabase.ts
 │   │   ├── coingecko.ts
-│   │   ├── yahoo-finance.ts
+│   │   ├── finnhub.ts
 │   │   └── telegram.ts
 │   └── lib/
 │       ├── auth.ts
@@ -63,6 +64,7 @@ stock-notification/
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client | Supabase anon key (browser) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server | Admin key — bypasses RLS |
 | `NEXTAUTH_SECRET` | Server | JWT signing secret (32-byte base64) |
+| `FINNHUB_API_KEY` | Server | Finnhub API key for stock quotes and search |
 | `CRON_SECRET` | Server | Shared secret for cron endpoint |
 | `NEXT_PUBLIC_APP_URL` | Client | Deployed app URL |
 
@@ -172,7 +174,7 @@ The cron job at `POST /api/cron/check-alerts` (authenticated via `x-cron-secret`
 1. Fetch all `is_active = true` alerts from the DB
 2. Deduplicate asset IDs by type, fetch prices in parallel:
    - Crypto → CoinGecko (`getCoinPrices`)
-   - Stocks → Yahoo Finance (`getStockPrices`)
+   - Stocks → Finnhub (`getStockPrices` + `getStockHourlyChanges` only for tickers with active `1h` alerts)
 3. For each alert:
    - **Skip** if `isInCooldown(alert)` — `now - last_triggered_at < cooldown_minutes`
    - **Skip** if `!evaluateAlert(alert, price)`
@@ -200,7 +202,8 @@ The cron job at `POST /api/cron/check-alerts` (authenticated via `x-cron-secret`
 | GET | `/api/auth/poll` | none | Poll token verification status |
 | POST | `/api/telegram/webhook` | Bot token | Handle Telegram updates (`/start`, `/alerts`) |
 | GET | `/api/search` | session | Search coins via CoinGecko |
-| GET | `/api/stock-lookup` | session | Look up stock via Yahoo Finance |
+| GET | `/api/stock-search` | session | Search stocks via Finnhub |
+| GET | `/api/stock-lookup` | session | Look up stock via Finnhub |
 | POST | `/api/cron/check-alerts` | `x-cron-secret` | Evaluate alerts, send notifications |
 
 ---
@@ -213,11 +216,13 @@ The cron job at `POST /api/cron/check-alerts` (authenticated via `x-cron-secret`
 
 ### `shared/api/coingecko.ts`
 - `searchCoins(query)` — search with 60s cache
-- `getCoinPrices(ids[])` — fetch USD price + 24h change
+- `getCoinPrices(ids[])` — fetch USD price + 1h/24h change, cached 120s
 
-### `shared/api/yahoo-finance.ts`
-- `lookupStock(ticker)` — returns `{ symbol, name }` or null
-- `getStockPrices(symbols[])` — batch fetch via `Promise.allSettled`
+### `shared/api/finnhub.ts`
+- `searchStocks(query)` — search US common stocks, 60s cache
+- `lookupStock(ticker)` — returns `{ symbol, name }` via `/stock/profile2`, 5min cache
+- `getStockPrices(symbols[])` — parallel `/quote` calls per symbol, cached 120s; `usd_1h_change` is always `0` (not needed for display)
+- `getStockHourlyChanges(symbols[])` — parallel `/stock/candle` calls (1h resolution, last 2 hours); no cache — used by cron only for tickers with active `1h` alerts
 
 ### `shared/api/telegram.ts`
 - `sendMessage(chatId, htmlText)` — send HTML-formatted message

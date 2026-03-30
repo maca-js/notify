@@ -49,7 +49,7 @@ export async function lookupStock(ticker: string): Promise<StockInfo | null> {
   }
 }
 
-async function getStockHourlyChanges(symbols: string[]): Promise<Record<string, number>> {
+export async function getStockHourlyChanges(symbols: string[]): Promise<Record<string, number>> {
   const now = Date.now();
   const from = new Date(now - 2 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const to = new Date(now).toISOString().slice(0, 10);
@@ -76,26 +76,27 @@ export async function getStockPrices(symbols: string[]): Promise<StockPriceMap> 
   if (symbols.length === 0 || !key()) return {};
   try {
     const tickers = symbols.join(",");
-    const url = `${BASE}/v2/snapshot/locale/us/markets/stocks/tickers?tickers=${encodeURIComponent(tickers)}&apiKey=${key()}`;
-    const [snapshotRes, hourlyChanges] = await Promise.all([
-      fetch(url, { next: { revalidate: 60 } }),
-      getStockHourlyChanges(symbols),
-    ]);
-    if (!snapshotRes.ok) return {};
+    const url = `${BASE}/v2/snapshot/locale/us/markets/stocks/tickers?tickers=${tickers}&apiKey=${key()}`;
+    const snapshotRes = await fetch(url, { cache: "no-store" });
+    if (!snapshotRes.ok) {
+      console.error("[polygon] snapshot error", snapshotRes.status, await snapshotRes.text());
+      return {};
+    }
     const data = await snapshotRes.json();
     const result: StockPriceMap = {};
     for (const t of data.tickers ?? []) {
-      const price = t.day?.c ?? t.lastTrade?.p;
-      if (price != null) {
+      const price = t.lastTrade?.p ?? t.day?.c ?? t.prevDay?.c;
+      if (price != null && price !== 0) {
         result[t.ticker] = {
           usd: price,
-          usd_1h_change: hourlyChanges[t.ticker] ?? 0,
+          usd_1h_change: 0,
           usd_24h_change: t.todaysChangePerc ?? 0,
         };
       }
     }
     return result;
-  } catch {
+  } catch (err) {
+    console.error("[polygon] getStockPrices error:", err);
     return {};
   }
 }
