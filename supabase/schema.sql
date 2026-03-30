@@ -38,7 +38,7 @@ create table if not exists alerts (
   condition text not null check (condition in ('above', 'below')),
   value numeric not null,
   -- timeframe only relevant for percent_change alerts
-  timeframe text not null default '24h' check (timeframe in ('24h')),
+  timeframe text not null default '24h' check (timeframe in ('1h', '24h')),
   is_active boolean not null default true,
   -- minutes to wait before re-triggering the same alert
   cooldown_minutes integer not null default 60,

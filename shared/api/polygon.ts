@@ -49,20 +49,47 @@ export async function lookupStock(ticker: string): Promise<StockInfo | null> {
   }
 }
 
+async function getStockHourlyChanges(symbols: string[]): Promise<Record<string, number>> {
+  const now = Date.now();
+  const from = new Date(now - 2 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const to = new Date(now).toISOString().slice(0, 10);
+  const results = await Promise.all(
+    symbols.map(async (ticker) => {
+      try {
+        const url = `${BASE}/v2/aggs/ticker/${ticker}/range/1/hour/${from}/${to}?adjusted=true&sort=desc&limit=2&apiKey=${key()}`;
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) return [ticker, 0] as const;
+        const data = await res.json();
+        const bars: { c: number }[] = data.results ?? [];
+        if (bars.length < 2) return [ticker, 0] as const;
+        const change = ((bars[0].c - bars[1].c) / bars[1].c) * 100;
+        return [ticker, change] as const;
+      } catch {
+        return [ticker, 0] as const;
+      }
+    })
+  );
+  return Object.fromEntries(results);
+}
+
 export async function getStockPrices(symbols: string[]): Promise<StockPriceMap> {
   if (symbols.length === 0 || !key()) return {};
   try {
     const tickers = symbols.join(",");
     const url = `${BASE}/v2/snapshot/locale/us/markets/stocks/tickers?tickers=${encodeURIComponent(tickers)}&apiKey=${key()}`;
-    const res = await fetch(url, { next: { revalidate: 60 } });
-    if (!res.ok) return {};
-    const data = await res.json();
+    const [snapshotRes, hourlyChanges] = await Promise.all([
+      fetch(url, { next: { revalidate: 60 } }),
+      getStockHourlyChanges(symbols),
+    ]);
+    if (!snapshotRes.ok) return {};
+    const data = await snapshotRes.json();
     const result: StockPriceMap = {};
     for (const t of data.tickers ?? []) {
       const price = t.day?.c ?? t.lastTrade?.p;
       if (price != null) {
         result[t.ticker] = {
           usd: price,
+          usd_1h_change: hourlyChanges[t.ticker] ?? 0,
           usd_24h_change: t.todaysChangePerc ?? 0,
         };
       }

@@ -13,10 +13,10 @@ export type AlertWithAsset = Alert & {
   };
 };
 
-export const ALERT_TYPE_LABELS: Record<Alert["type"], string> = {
-  percent_change: "% change (24h)",
-  threshold: "Price",
-};
+export function getAlertTypeLabel(type: Alert["type"], timeframe: Alert["timeframe"]): string {
+  if (type === "percent_change") return `% change (${timeframe})`;
+  return "Price threshold";
+}
 
 export const ALERT_CONDITION_LABELS: Record<Alert["condition"], string> = {
   above: "goes above",

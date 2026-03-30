@@ -9,6 +9,7 @@ export type CoinSearchResult = {
 
 export type AssetPrice = {
   usd: number;
+  usd_1h_change: number;
   usd_24h_change: number;
 };
 
@@ -31,7 +32,7 @@ export async function getCoinPrices(ids: string[]): Promise<CoinPriceMap> {
   if (ids.length === 0) return {};
   const idsParam = ids.join(",");
   const res = await fetch(
-    `${BASE_URL}/simple/price?ids=${idsParam}&vs_currencies=usd&include_24hr_change=true`,
+    `${BASE_URL}/simple/price?ids=${idsParam}&vs_currencies=usd&include_1hr_change=true&include_24hr_change=true`,
     { cache: "no-store" }
   );
   if (!res.ok) throw new Error("CoinGecko price fetch failed");

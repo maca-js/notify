@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { AlertWithAsset } from '@/entities/alert/model';
-import { ALERT_CONDITION_LABELS, ALERT_TYPE_LABELS } from '@/entities/alert/model';
+import { ALERT_CONDITION_LABELS, getAlertTypeLabel } from '@/entities/alert/model';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useTransition } from 'react';
 import { deleteAlertAction, toggleAlertAction } from './actions';
@@ -65,7 +65,7 @@ export function AlertList({ alerts, onNewAlert, onEditAlert }: Props) {
                 <Card key={alert.id} className="px-4 py-3 gap-2">
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-sm truncate">
-                      {ALERT_TYPE_LABELS[alert.type]}
+                      {getAlertTypeLabel(alert.type, alert.timeframe)}
                       <span className="text-muted-foreground"> · {ALERT_CONDITION_LABELS[alert.condition]} · </span>
                       <span className="font-medium">{alert.type === 'percent_change' ? `${alert.value}%` : `$${alert.value.toLocaleString()}`}</span>
                     </span>
@@ -110,7 +110,7 @@ export function AlertList({ alerts, onNewAlert, onEditAlert }: Props) {
                 <TableBody>
                   {assetAlerts.map((alert) => (
                     <TableRow key={alert.id}>
-                      <TableCell>{ALERT_TYPE_LABELS[alert.type]}</TableCell>
+                      <TableCell>{getAlertTypeLabel(alert.type, alert.timeframe)}</TableCell>
                       <TableCell className="capitalize">{ALERT_CONDITION_LABELS[alert.condition]}</TableCell>
                       <TableCell>
                         {alert.type === 'percent_change' ? `${alert.value}%` : `$${alert.value.toLocaleString()}`}

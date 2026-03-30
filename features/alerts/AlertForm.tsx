@@ -32,9 +32,24 @@ type Props = {
 
 type AlertType = "percent_change" | "threshold";
 type AlertCondition = "above" | "below";
+type AlertTimeframe = "1h" | "24h";
+// Combined dropdown key that encodes both type and timeframe
+type AlertTypeKey = "percent_change_24h" | "percent_change_1h" | "threshold";
+
+function toTypeKey(type: AlertType, timeframe: AlertTimeframe): AlertTypeKey {
+  if (type === "threshold") return "threshold";
+  return timeframe === "1h" ? "percent_change_1h" : "percent_change_24h";
+}
+
+function fromTypeKey(key: AlertTypeKey): { type: AlertType; timeframe: AlertTimeframe } {
+  if (key === "threshold") return { type: "threshold", timeframe: "24h" };
+  if (key === "percent_change_1h") return { type: "percent_change", timeframe: "1h" };
+  return { type: "percent_change", timeframe: "24h" };
+}
 
 export function AlertForm({ assetId, assetName, open, onClose, alert }: Props) {
   const [type, setType] = useState<AlertType>(alert?.type ?? "percent_change");
+  const [timeframe, setTimeframe] = useState<AlertTimeframe>(alert?.timeframe ?? "24h");
   const [condition, setCondition] = useState<AlertCondition>(alert?.condition ?? "above");
   const [value, setValue] = useState(alert?.value?.toString() ?? "");
   const [cooldown, setCooldown] = useState(alert?.cooldown_minutes?.toString() ?? "60");
@@ -42,10 +57,17 @@ export function AlertForm({ assetId, assetName, open, onClose, alert }: Props) {
 
   useEffect(() => {
     setType(alert?.type ?? "percent_change");
+    setTimeframe(alert?.timeframe ?? "24h");
     setCondition(alert?.condition ?? "above");
     setValue(alert?.value?.toString() ?? "");
     setCooldown(alert?.cooldown_minutes?.toString() ?? "60");
   }, [alert]);
+
+  function handleTypeKeyChange(key: AlertTypeKey) {
+    const decoded = fromTypeKey(key);
+    setType(decoded.type);
+    setTimeframe(decoded.timeframe);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -56,6 +78,7 @@ export function AlertForm({ assetId, assetName, open, onClose, alert }: Props) {
       if (alert) {
         await updateAlertAction(alert.id, {
           type,
+          timeframe,
           condition,
           value: numValue,
           cooldown_minutes: parseInt(cooldown, 10),
@@ -66,7 +89,7 @@ export function AlertForm({ assetId, assetName, open, onClose, alert }: Props) {
           type,
           condition,
           value: numValue,
-          timeframe: "24h",
+          timeframe,
           is_active: true,
           cooldown_minutes: parseInt(cooldown, 10),
           last_triggered_at: null,
@@ -89,13 +112,14 @@ export function AlertForm({ assetId, assetName, open, onClose, alert }: Props) {
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           <div className="space-y-2">
             <Label>Alert type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as AlertType)}>
+            <Select value={toTypeKey(type, timeframe)} onValueChange={(v) => handleTypeKeyChange(v as AlertTypeKey)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="percent_change">% change (24h)</SelectItem>
-                <SelectItem value="threshold">Price</SelectItem>
+                <SelectItem value="percent_change_24h">% change (24h)</SelectItem>
+                <SelectItem value="percent_change_1h">% change (1h)</SelectItem>
+                <SelectItem value="threshold">Price threshold</SelectItem>
               </SelectContent>
             </Select>
           </div>

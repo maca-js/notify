@@ -22,7 +22,7 @@ export async function createAlertAction(
 
 export async function updateAlertAction(
   id: string,
-  data: Partial<Pick<Alert, "type" | "condition" | "value" | "cooldown_minutes">>
+  data: Partial<Pick<Alert, "type" | "condition" | "value" | "cooldown_minutes" | "timeframe">>
 ) {
   const session = await getSession();
   if (!session) throw new Error("Not authenticated");

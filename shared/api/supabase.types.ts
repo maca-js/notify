@@ -42,7 +42,7 @@ type AlertRow = {
   type: "percent_change" | "threshold";
   condition: "above" | "below";
   value: number;
-  timeframe: "24h";
+  timeframe: "1h" | "24h";
   is_active: boolean;
   cooldown_minutes: number;
   last_triggered_at: string | null;
