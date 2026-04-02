@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/shared/lib/auth";
 import { logoutAction } from "@/features/auth/logout-action";
@@ -27,6 +28,14 @@ export default async function DashboardLayout({
         </div>
       </header>
       <div className="flex-1 max-w-3xl mx-auto w-full px-6 py-10">{children}</div>
+      <footer className="border-t border-border/50">
+        <div className="max-w-3xl mx-auto px-6 h-12 flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} CryptoAlert</p>
+          <Link href="/about" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            About
+          </Link>
+        </div>
+      </footer>
     </div>
   );
 }
