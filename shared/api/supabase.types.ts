@@ -58,6 +58,16 @@ type NotificationRow = {
   sent_at: string;
 };
 
+type PortfolioLotRow = {
+  id: string;
+  user_id: string;
+  asset_id: string;
+  quantity: number;
+  cost_basis: number;
+  purchase_date: string;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -106,6 +116,15 @@ export type Database = {
         Relationships: [
           { foreignKeyName: "notifications_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] },
           { foreignKeyName: "notifications_alert_id_fkey"; columns: ["alert_id"]; referencedRelation: "alerts"; referencedColumns: ["id"] }
+        ];
+      };
+      portfolio_lots: {
+        Row: PortfolioLotRow;
+        Insert: Omit<PortfolioLotRow, "id" | "created_at">;
+        Update: Partial<Omit<PortfolioLotRow, "id" | "created_at">>;
+        Relationships: [
+          { foreignKeyName: "portfolio_lots_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] },
+          { foreignKeyName: "portfolio_lots_asset_id_fkey"; columns: ["asset_id"]; referencedRelation: "assets"; referencedColumns: ["id"] }
         ];
       };
     };

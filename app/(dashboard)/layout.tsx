@@ -1,24 +1,28 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getSession } from "@/shared/lib/auth";
-import { logoutAction } from "@/features/auth/logout-action";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
+import { logoutAction } from '@/features/auth/logout-action';
+import { getSession } from '@/shared/lib/auth';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
-  if (!session) redirect("/");
+  if (!session) redirect('/');
 
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-border/50 sticky top-0 z-10 bg-background">
         <div className="max-w-3xl mx-auto px-6 h-12 flex items-center justify-between">
-          <span className="text-sm font-medium">CryptoAlert</span>
           <div className="flex items-center gap-4">
-            <span className="text-xs text-muted-foreground">{session.firstName}</span>
+            <span className="text-sm font-medium mr-2">CryptoAlert</span>
+            <Link href="/portfolio" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Portfolio
+            </Link>
+            <Link href="/dashboard" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              Alerts
+            </Link>
+          </div>
+          <div className="flex items-center  gap-4">
+            <span className="text-xs text-muted-foreground ml-2">{session.firstName}</span>
             <form action={logoutAction}>
               <Button variant="ghost" size="sm" className="text-xs h-7 px-2" type="submit">
                 Sign out
