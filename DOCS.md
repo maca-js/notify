@@ -124,6 +124,17 @@ stock-notification/
 | `message` | text | HTML-formatted Telegram message |
 | `sent_at` | timestamptz | default `now()` |
 
+### `portfolio_lots`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid PK | |
+| `user_id` | uuid FK → users | |
+| `asset_id` | uuid FK → assets | stock assets only |
+| `quantity` | numeric | shares per lot, > 0 |
+| `cost_basis` | numeric | price paid per share, > 0 |
+| `purchase_date` | date | |
+| `created_at` | timestamptz | |
+
 ### `auth_tokens`
 | Column | Type | Notes |
 |---|---|---|
@@ -206,6 +217,8 @@ The cron job at `POST /api/cron/check-alerts` (authenticated via `x-cron-secret`
 | GET | `/api/stock-lookup` | session | Look up stock via Finnhub |
 | POST | `/api/cron/check-alerts` | `x-cron-secret` | Evaluate alerts, send notifications |
 
+The `/portfolio` page (server component) fetches all lots for the user, resolves live prices via `getStockPrices`, aggregates lots into positions, and passes computed metrics to `PortfolioClient`.
+
 ---
 
 ## Shared Modules
@@ -258,6 +271,12 @@ The cron job at `POST /api/cron/check-alerts` (authenticated via `x-cron-secret`
 
 ### `features/notifications`
 - `NotificationLog` — read-only table of sent notifications
+
+### `features/portfolio`
+- `AddLotForm` — modal dialog for adding or editing a purchase lot; includes stock search via `/api/stock-search`
+- `HoldingsTable` — desktop table + mobile cards; positions grouped by stock with expandable lot rows; shows shares, avg cost, current price, market value, unrealized P&L
+- `PortfolioSummary` — three-card summary row: total value, total cost, total P&L
+- `actions.ts` — `addLotAction`, `updateLotAction`, `deleteLotAction`
 
 ---
 
